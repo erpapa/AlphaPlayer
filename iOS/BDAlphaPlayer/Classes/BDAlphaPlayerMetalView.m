@@ -19,7 +19,7 @@
 @property (nonatomic, strong, readwrite) BDAlphaPlayerResourceModel *model;
 @property (nonatomic, assign, readwrite) BDAlphaPlayerPlayState state;
 
-@property (nonatomic, weak, nullable) id<BDAlphaPlayerMetalViewDelegate> delegate;
+@property (nonatomic, weak, nullable) id<BDAlphaPlayerDelegate> delegate;
 
 @property (nonatomic, assign) CGRect renderSuperViewFrame;
 @property (nonatomic, strong) MTKView *mtkView;
@@ -35,17 +35,19 @@
 
 - (instancetype)initWithFrame:(CGRect)frame
 {
-    return [self initWithDelegate:nil];
+    self = [super initWithFrame:frame];
+    if (self) {
+        self.contentScaleFactor = [UIScreen mainScreen].scale;
+        self.backgroundColor = [UIColor clearColor];
+        [self setupMetal];
+    }
+    return self;
 }
 
-- (instancetype)initWithCoder:(NSCoder *)coder
+- (instancetype)initWithDelegate:(id<BDAlphaPlayerDelegate>)delegate
 {
-    return [self initWithDelegate:nil];
-}
-
-- (instancetype)initWithDelegate:(id<BDAlphaPlayerMetalViewDelegate>)delegate
-{
-    if (self = [super initWithFrame:CGRectZero]) {
+    self = [super initWithFrame:CGRectZero];
+    if (self) {
         self.contentScaleFactor = [UIScreen mainScreen].scale;
         self.backgroundColor = [UIColor clearColor];
         
@@ -53,6 +55,13 @@
         [self setupMetal];
     }
     return self;
+}
+
+- (void)dealloc
+{
+    if (!self.hasDestroyed) {
+        [self destroyMTKView];
+    }
 }
 
 #pragma mark - Public Method
@@ -71,13 +80,26 @@
     [self play];
 }
 
+- (void)playWithFrame:(CGRect)frame model:(BDAlphaPlayerResourceModel *)model completion:(nullable BDAlphaPlayerRenderOutputCompletion)completion
+{
+    self.renderSuperViewFrame = frame;
+    self.model = model;
+    [self configRenderViewContentModeFromModel];
+    [self playWithCompletion:completion];
+}
+
 - (NSTimeInterval)totalDurationOfPlayingEffect
 {
     if (self.output) {
         return self.output.videoDuration;
-    } else {
-        return 0.0;
     }
+    return 0.0;
+}
+
+- (void)pause
+{
+    self.mtkView.paused = YES;
+    [self.metalRenderer drainSampleBufferQueue];
 }
 
 - (void)stop
@@ -95,8 +117,11 @@
 
 - (void)configRenderViewContentModeFromModel
 {
-    BDAlphaPlayerContentMode mode = self.model.currentOrientationResourceInfo.contentMode;
-    self.model.currentOrientationResourceInfo.contentMode = mode;
+    if (self.model.currentOrientationResourceInfo) {
+        BDAlphaPlayerContentMode mode = self.model.currentOrientationResourceInfo.contentMode;
+        self.model.currentOrientationResourceInfo.contentMode = mode;
+        self.model.currentContentMode = mode;
+    }
 }
 
 #pragma mark Callback
@@ -113,10 +138,18 @@
 
 - (void)play
 {
-    NSURL *url = [self.model.currentOrientationResourceInfo resourceFileURL];
+    [self playWithCompletion:NULL];
+}
+
+- (void)playWithCompletion:(BDAlphaPlayerRenderOutputCompletion)completion
+{
+    NSURL *url = self.model.currentResourceFileURL;
+    if (!url) {
+        url = [self.model.currentOrientationResourceInfo resourceFileURL];
+    }
     NSError *error = nil;
     BDAlphaPlayerAssetReaderOutput *output = [[BDAlphaPlayerAssetReaderOutput alloc] initWithURL:url error:&error];
-    CGRect rederFrame = [BDAlphaPlayerUtility frameFromVideoSize:output.videoSize renderSuperViewFrame:self.renderSuperViewFrame resourceModel:self.model];
+    CGRect rederFrame = [BDAlphaPlayerUtility frameFromVideoSize:output.videoSize renderSuperViewFrame:self.renderSuperViewFrame contentMode:self.model.currentContentMode];
     self.frame = rederFrame;
     
     if (error) {
@@ -137,9 +170,17 @@
         return;
     }
     self.state = BDAlphaPlayerPlayStatePlay;
-    __weak __typeof(self) weakSelf = self;
+    BDAlphaPlayerRenderOutputCompletion outputCompletion = [completion copy];
+
+    __weak typeof(self) weakSelf = self;
     [self renderOutput:output resourceModel:self.model completion:^{
+        if (!weakSelf) {
+            return;
+        }
         [weakSelf renderCompletion];
+        if (outputCompletion) {
+            outputCompletion();
+        }
     }];
 }
 
@@ -156,12 +197,12 @@
     self.output = output;
     BDAlphaPlayerRenderOutputCompletion renderCompletion = [completion copy];
     
-    __weak __typeof(self) wSelf = self;
+    __weak typeof(self) weakSelf = self;
     [self.metalRenderer renderOutput:output resourceModel:resourceModel completion:^{
-        if (!wSelf) {
+        if (!weakSelf) {
             return;
         }
-        [wSelf destroyMTKView];
+        [weakSelf pause];
         if (renderCompletion) {
             renderCompletion();
         }
@@ -186,12 +227,13 @@
     if (!self.mtkView) {
         self.mtkView = [[MTKView alloc] initWithFrame:CGRectZero];
         self.mtkView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        self.mtkView.backgroundColor = UIColor.clearColor;
+        self.mtkView.backgroundColor = [UIColor clearColor];
         self.mtkView.device = MTLCreateSystemDefaultDevice();
+        self.mtkView.clearColor = MTLClearColorMake(0, 0, 0, 0);
         [self addSubview:self.mtkView];
         
+        __weak typeof(self) weakSelf = self;
         self.metalRenderer = [[BDAlphaPlayerMetalRenderer alloc] initWithMetalKitView:self.mtkView];
-        __weak __typeof(self) weakSelf = self;
         self.metalRenderer.framePlayDurationCallBack = ^(NSTimeInterval duration) {
             if (weakSelf && [weakSelf.delegate respondsToSelector:@selector(frameCallBack:)]) {
                 [weakSelf.delegate frameCallBack:duration];

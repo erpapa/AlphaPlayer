@@ -10,7 +10,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface BDAlphaPlayerMetalView : UIView <BDAlphaPlayerProtocol>
+@interface BDAlphaPlayerVideoView : UIView <BDAlphaPlayerProtocol>
 
 @end
 

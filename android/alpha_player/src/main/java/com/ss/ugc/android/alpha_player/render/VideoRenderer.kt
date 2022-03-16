@@ -36,11 +36,11 @@ class VideoRenderer(val alphaVideoView: IAlphaVideoView) : IRender {
      * coordinates and window coordinates. It will changed for {@link ScaleType}
      * by {@link TextureCropUtil}.
      */
-    private var halfRightVerticeData = floatArrayOf(
+    private var verticeData = floatArrayOf(
         // X, Y, Z, U, V
-        -1.0f, -1.0f, 0f, 0.5f, 0f,
+        -1.0f, -1.0f, 0f, 0f, 0f,
         1.0f, -1.0f, 0f, 1f, 0f,
-        -1.0f, 1.0f, 0f, 0.5f, 1f,
+        -1.0f, 1.0f, 0f, 0f, 1f,
         1.0f, 1.0f, 0f, 1f, 1f
     )
 
@@ -70,9 +70,9 @@ class VideoRenderer(val alphaVideoView: IAlphaVideoView) : IRender {
     private var scaleType = ScaleType.ScaleAspectFill
 
     init {
-        triangleVertices = ByteBuffer.allocateDirect(halfRightVerticeData.size * FLOAT_SIZE_BYTES)
+        triangleVertices = ByteBuffer.allocateDirect(verticeData.size * FLOAT_SIZE_BYTES)
             .order(ByteOrder.nativeOrder()).asFloatBuffer()
-        triangleVertices.put(halfRightVerticeData).position(0)
+        triangleVertices.put(verticeData).position(0)
         Matrix.setIdentityM(sTMatrix, 0)
     }
 
@@ -87,11 +87,10 @@ class VideoRenderer(val alphaVideoView: IAlphaVideoView) : IRender {
             return
         }
 
-        halfRightVerticeData = TextureCropUtil.calculateHalfRightVerticeData(scaleType,
-            viewWidth, viewHeight, videoWidth, videoHeight)
-        triangleVertices = ByteBuffer.allocateDirect(halfRightVerticeData.size * FLOAT_SIZE_BYTES)
+        verticeData = TextureCropUtil.calculateVerticeData(scaleType, viewWidth, viewHeight, videoWidth, videoHeight)
+        triangleVertices = ByteBuffer.allocateDirect(verticeData.size * FLOAT_SIZE_BYTES)
             .order(ByteOrder.nativeOrder()).asFloatBuffer()
-        triangleVertices.put(halfRightVerticeData).position(0)
+        triangleVertices.put(verticeData).position(0)
     }
 
     override fun setSurfaceListener(surfaceListener: IRender.SurfaceListener) {
@@ -115,7 +114,7 @@ class VideoRenderer(val alphaVideoView: IAlphaVideoView) : IRender {
             return
         }
         GLES20.glEnable(GLES20.GL_BLEND)
-        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
+        GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA)
 
         GLES20.glUseProgram(programID)
         checkGlError("glUseProgram")
@@ -134,7 +133,7 @@ class VideoRenderer(val alphaVideoView: IAlphaVideoView) : IRender {
 
         triangleVertices.position(TRIANGLE_VERTICES_DATA_UV_OFFSET)
         GLES20.glVertexAttribPointer(
-            aTextureHandle, 3, GLES20.GL_FLOAT, false,
+            aTextureHandle, 2, GLES20.GL_FLOAT, false,
             TRIANGLE_VERTICES_DATA_STRIDE_BYTES, triangleVertices
         )
         checkGlError("glVertexAttribPointer aTextureHandle")

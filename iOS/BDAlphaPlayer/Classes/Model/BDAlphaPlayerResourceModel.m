@@ -47,6 +47,8 @@
         } else {
             resourceModel.currentOrientationResourceInfo = resourceModel.landscapeResourceInfo;
         }
+        resourceModel.currentContentMode = resourceModel.currentOrientationResourceInfo.contentMode;
+        resourceModel.currentResourceFileURL = resourceModel.currentOrientationResourceInfo.resourceFileURL;
         BOOL isAvailable = [resourceModel.currentOrientationResourceInfo resourceAvailable];
         if (!isAvailable) {
             *error = [NSError errorWithDomain:BDAlphaPlayerErrorDomain code:BDAlphaPlayerErrorConfigAvailable userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"config.json data not available %@", directory]}];

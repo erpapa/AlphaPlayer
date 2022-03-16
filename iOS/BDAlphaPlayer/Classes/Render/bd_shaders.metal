@@ -31,18 +31,15 @@ fragment float4 samplingShader(RasterizerData input [[stage_in]],
 {
     constexpr sampler textureSampler (mag_filter::linear, min_filter::linear);
     
-    float tcx = input.textureCoordinate.x / 2 + 0.5;
+    float videoR = textureY.sample(textureSampler, float2(input.textureCoordinate.x * 0.5, input.textureCoordinate.y)).r;
+    float2 videoRG = textureUV.sample(textureSampler, float2(input.textureCoordinate.x * 0.5, input.textureCoordinate.y)).rg;
+    float3 videoRGB = convertMatrix->matrix * (float3(videoR, videoRG) + convertMatrix->offset);
     
-    float3 yuv = float3(textureY.sample(textureSampler, float2(tcx, input.textureCoordinate.y)).r,
-                          textureUV.sample(textureSampler, float2(tcx, input.textureCoordinate.y)).rg);
+    float alphaR = textureY.sample(textureSampler, float2(input.textureCoordinate.x * 0.5 + 0.5, input.textureCoordinate.y)).r;
+    float2 alphaRG = textureUV.sample(textureSampler, float2(input.textureCoordinate.x * 0.5 + 0.5, input.textureCoordinate.y)).rg;
+    float3 alphaRGB = convertMatrix->matrix * (float3(alphaR, alphaRG) + convertMatrix->offset);
     
-    float3 rgb = convertMatrix->matrix * (yuv + convertMatrix->offset);
-    
-    float3 alpha = float3(textureY.sample(textureSampler, float2(input.textureCoordinate.x / 2, input.textureCoordinate.y)).r,
-    textureUV.sample(textureSampler, float2(input.textureCoordinate.x / 2, input.textureCoordinate.y)).rg);
-        
-    float3 alphargb = convertMatrix->matrix * (alpha + convertMatrix->offset);
-    return float4(rgb, alphargb.r);
+    return float4(videoRGB, alphaRGB.r);
 }
 
 

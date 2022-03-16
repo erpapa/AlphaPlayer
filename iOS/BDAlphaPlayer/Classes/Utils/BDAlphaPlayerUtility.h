@@ -17,6 +17,6 @@ extern NSString *const BDAlphaPlayerErrorDomain;
 
 + (BDAlphaPlayerResourceModel *)createModelFromDictionary:(NSDictionary *)dictionary error:(NSError **)error;
 
-+ (CGRect)frameFromVideoSize:(CGSize)size renderSuperViewFrame:(CGRect)renderSuperViewFrame  resourceModel:(BDAlphaPlayerResourceModel *)resourceModel;
++ (CGRect)frameFromVideoSize:(CGSize)size renderSuperViewFrame:(CGRect)renderSuperViewFrame  contentMode:(BDAlphaPlayerContentMode)contentMode;
 
 @end

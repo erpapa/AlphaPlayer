@@ -47,8 +47,13 @@
 
     <com.ss.ugc.android.alphavideoplayer.VideoGiftView
         android:id="@+id/video_gift_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:background="#CFCFCF"
+        android:layout_width="200dp"
+        android:layout_height="0dp"
+        app:layout_constraintDimensionRatio="2:5"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/start_btn" />
 
     <ImageView
         android:layout_width="wrap_content"

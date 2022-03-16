@@ -30,6 +30,12 @@
 /** The resource model for current orientation. */
 @property (nonatomic, strong) BDAlphaPlayerResourceInfo *currentOrientationResourceInfo;
 
+/** ContentMode of currently displaying MP4. */
+@property (nonatomic, assign) BDAlphaPlayerContentMode currentContentMode;
+
+/** URL for MP4 file. */
+@property (nonatomic, strong) NSURL *currentResourceFileURL;
+
 /**
  @brief Initialize resource data from local path.
  @param directory Directory of resource file.

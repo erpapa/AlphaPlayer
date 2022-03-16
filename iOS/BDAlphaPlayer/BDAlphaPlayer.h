@@ -5,6 +5,12 @@
 //  Created by ByteDance on 2020/12/18.
 //
 
+#import <BDAlphaPlayer/BDAlphaPlayerDelegate.h>
+#import <BDAlphaPlayer/BDAlphaPlayerProtocol.h>
+#import <BDAlphaPlayer/BDAlphaVideoCompositing.h>
+#import <BDAlphaPlayer/BDAlphaVideoCompositionInstruction.h>
+#import <BDAlphaPlayer/BDAlphaVideoFilter.h>
+#import <BDAlphaPlayer/BDAlphaPlayerVideoView.h>
 #import <BDAlphaPlayer/BDAlphaPlayerMetalView.h>
 #import <BDAlphaPlayer/BDAlphaPlayerMetalShaderType.h>
 #import <BDAlphaPlayer/BDAlphaPlayerDefine.h>

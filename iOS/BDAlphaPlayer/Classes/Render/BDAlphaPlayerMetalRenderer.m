@@ -39,9 +39,9 @@
 
 - (void)dealloc
 {
-    CVMetalTextureCacheRef cache = self.textureCache;
-    if (cache) {
-        CFRelease(cache);
+    if (_textureCache) {
+        CFRelease(_textureCache);
+        _textureCache = NULL;
     }
 }
 
@@ -69,15 +69,25 @@
 - (void)drainSampleBufferQueue
 {
     [self.output drainSampleBufferQueue];
+    if (self.textureCache) {
+        CVMetalTextureCacheFlush(self.textureCache, 0);
+    }
 }
 
 - (void)setup
 {
     self.mtkView.paused = YES;
     self.mtkView.delegate = self;
-    CVMetalTextureCacheCreate(NULL, NULL, self.mtkView.device, NULL, &_textureCache);
+    [self setupCache];
     [self setupVertex];
     [self setupPipeline];
+}
+
+- (void)setupCache
+{
+    if (!_textureCache) {
+        CVMetalTextureCacheCreate(NULL, NULL, self.mtkView.device, NULL, &_textureCache);
+    }
 }
 
 - (void)setupMatrix
@@ -118,7 +128,7 @@
     self.numVertices = sizeof(quadVertices) / sizeof(BDAlphaPlayerVertex);
 }
 
--(void)setupPipeline
+- (void)setupPipeline
 {
     NSString *filePath = [[NSBundle bundleForClass:[self class]] pathForResource:@"BDAlphaPlayer.bundle/default" ofType:@"metallib"];
     NSError *error = nil;
@@ -130,13 +140,13 @@
     pipelineStateDescriptor.vertexFunction = vertexFunction;
     pipelineStateDescriptor.fragmentFunction = fragmentFunction;
     pipelineStateDescriptor.colorAttachments[0].pixelFormat = self.mtkView.colorPixelFormat;
-    pipelineStateDescriptor.colorAttachments[0].blendingEnabled = true;
+    pipelineStateDescriptor.colorAttachments[0].blendingEnabled = NO; // 由于clearColor是(0,0,0,0)，可以不启用blend
     pipelineStateDescriptor.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
     pipelineStateDescriptor.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorOne;
-    pipelineStateDescriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOne;
-    pipelineStateDescriptor.colorAttachments[0].alphaBlendOperation = MTLBlendOperationMin;
+    pipelineStateDescriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+    pipelineStateDescriptor.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
     pipelineStateDescriptor.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
-    pipelineStateDescriptor.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
+    pipelineStateDescriptor.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
     self.pipelineState = [self.mtkView.device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor error:NULL];
     self.commandQueue = [self.mtkView.device newCommandQueue];
 }

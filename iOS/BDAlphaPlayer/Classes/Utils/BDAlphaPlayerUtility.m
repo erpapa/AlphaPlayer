@@ -66,12 +66,12 @@ NSString *const BDAlphaPlayerErrorDomain = @"BDAlphaPlayerErrorDomain";
     return [NSError errorWithDomain:BDAlphaPlayerErrorDomain code:BDAlphaPlayerErrorConfigResolve userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"config.json serialization fail at %@", dictionary]}];
 }
 
-+ (CGRect)frameFromVideoSize:(CGSize)size renderSuperViewFrame:(CGRect)renderSuperViewFrame  resourceModel:(BDAlphaPlayerResourceModel *)resourceModel
++ (CGRect)frameFromVideoSize:(CGSize)size renderSuperViewFrame:(CGRect)renderSuperViewFrame  contentMode:(BDAlphaPlayerContentMode)contentMode
 {
     CGFloat layerRatio = renderSuperViewFrame.size.width / renderSuperViewFrame.size.height;
     CGFloat imgRatio = size.width * 0.5 / size.height;
-    CGRect rationRect = [BDAlphaPlayerUtility scaleLayerRatio:layerRatio imgRatio:imgRatio mode:resourceModel.currentOrientationResourceInfo.contentMode];
-    CGRect renderRect  = [BDAlphaPlayerUtility transFrameFromRationRect:rationRect superViewFrame:renderSuperViewFrame];
+    CGRect rationRect = [BDAlphaPlayerUtility scaleLayerRatio:layerRatio imgRatio:imgRatio mode:contentMode];
+    CGRect renderRect = [BDAlphaPlayerUtility transFrameFromRationRect:rationRect superViewFrame:renderSuperViewFrame];
     return renderRect;
 }
 
