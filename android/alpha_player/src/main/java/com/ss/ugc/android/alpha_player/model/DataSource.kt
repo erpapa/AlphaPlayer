@@ -18,7 +18,11 @@ class DataSource {
     var isLooping: Boolean = false
 
     fun setBaseDir(baseDir: String): DataSource {
-        this.baseDir = if (baseDir.endsWith(File.separator)) baseDir else (baseDir + File.separator)
+        if (TextUtils.isEmpty(baseDir)) {
+            this.baseDir = baseDir
+        } else {
+            this.baseDir = if (baseDir.endsWith(File.separator)) baseDir else (baseDir + File.separator)
+        }
         return this
     }
 

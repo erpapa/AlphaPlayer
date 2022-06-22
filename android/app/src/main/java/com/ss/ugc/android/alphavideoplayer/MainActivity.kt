@@ -3,11 +3,13 @@ package com.ss.ugc.android.alphavideoplayer
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
+import android.text.TextUtils
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.ss.ugc.android.alpha_player.IMonitor
 import com.ss.ugc.android.alpha_player.IPlayerAction
+import com.ss.ugc.android.alpha_player.model.DataSource
 import com.ss.ugc.android.alpha_player.model.ScaleType
 import com.ss.ugc.android.alphavideoplayer.utils.PermissionUtils
 import kotlinx.android.synthetic.main.activity_main.*
@@ -68,11 +70,18 @@ class MainActivity : AppCompatActivity() {
     fun playGift(v: View) {
         val testPath = getResourcePath()
         Log.i("dzy", "play gift file path : $testPath")
-        if ("".equals(testPath)) {
+        if (TextUtils.isEmpty(testPath)) {
             Toast.makeText(this, "please run 'gift_install.sh gift/demoRes' for load alphaVideo resource.", Toast.LENGTH_SHORT)
                 .show()
+            return
         }
-        video_gift_view.startVideoGift(testPath)
+        // video_gift_view.startVideoGift(testPath)
+        val dataSource = DataSource()
+            .setBaseDir("")
+            .setPortraitPath("https://video.ivwen.com/users/47951008/73c07c63b599bcc0d4ac53802d6ebd79.mp4", 1)
+            .setLandscapePath("https://video.ivwen.com/users/47951008/73c07c63b599bcc0d4ac53802d6ebd79.mp4", 1)
+            .setLooping(false)
+        video_gift_view.startDataSource(dataSource)
     }
 
     private fun getResourcePath(): String {

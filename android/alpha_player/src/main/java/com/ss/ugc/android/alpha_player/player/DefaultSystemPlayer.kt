@@ -1,7 +1,9 @@
 package com.ss.ugc.android.alpha_player.player
 
+import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
+import android.net.Uri
 import android.text.TextUtils
 import android.view.Surface
 import com.ss.ugc.android.alpha_player.model.VideoInfo
@@ -10,12 +12,9 @@ import java.lang.Exception
 /**
  * created by dengzhuoyao on 2020/07/07
  */
-class DefaultSystemPlayer : AbsPlayer() {
+class DefaultSystemPlayer(private val context: Context) : AbsPlayer(context) {
 
     lateinit var mediaPlayer : MediaPlayer
-    val retriever: MediaMetadataRetriever = MediaMetadataRetriever()
-    lateinit var dataPath : String
-
 
     override fun initMediaPlayer() {
         mediaPlayer = MediaPlayer()
@@ -46,8 +45,7 @@ class DefaultSystemPlayer : AbsPlayer() {
     }
 
     override fun setDataSource(dataPath: String) {
-        this.dataPath = dataPath
-        mediaPlayer.setDataSource(dataPath)
+        mediaPlayer.setDataSource(context, Uri.parse(dataPath))
     }
 
     override fun prepareAsync() {
@@ -68,12 +66,10 @@ class DefaultSystemPlayer : AbsPlayer() {
 
     override fun reset() {
         mediaPlayer.reset()
-        this.dataPath = ""
     }
 
     override fun release() {
         mediaPlayer.release()
-        this.dataPath = ""
     }
 
     override fun setLooping(looping: Boolean) {
@@ -85,21 +81,7 @@ class DefaultSystemPlayer : AbsPlayer() {
     }
 
     override fun getVideoInfo(): VideoInfo {
-        if (TextUtils.isEmpty(dataPath)) {
-            throw Exception("dataPath is null, please set setDataSource firstly!")
-        }
-
-        retriever.setDataSource(dataPath)
-        val widthStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
-        val heightStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
-        if (TextUtils.isEmpty(widthStr) || TextUtils.isEmpty(heightStr)) {
-            throw Exception("DefaultSystemPlayer get metadata failure!")
-        }
-
-        val videoWidth = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH).toInt()
-        val videoHeight = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT).toInt()
-
-        return VideoInfo(videoWidth, videoHeight)
+        return VideoInfo(mediaPlayer.videoWidth, mediaPlayer.videoHeight)
     }
 
     override fun getPlayerType(): String {

@@ -50,7 +50,7 @@ class PlayerController(val context: Context, owner: LifecycleOwner, val alphaVid
         fun get(configuration: Configuration, mediaPlayer: IMediaPlayer? = null): PlayerController {
             return PlayerController(configuration.context, configuration.lifecycleOwner,
                 configuration.alphaVideoViewType,
-                mediaPlayer ?: DefaultSystemPlayer())
+                mediaPlayer ?: DefaultSystemPlayer(configuration.context))
         }
     }
 
@@ -220,7 +220,7 @@ class PlayerController(val context: Context, owner: LifecycleOwner, val alphaVid
         try {
             mediaPlayer.initMediaPlayer()
         } catch (e: Exception) {
-            mediaPlayer = DefaultSystemPlayer()
+            mediaPlayer = DefaultSystemPlayer(context)
             mediaPlayer.initMediaPlayer()
             // TODO: add log
         }
@@ -261,8 +261,13 @@ class PlayerController(val context: Context, owner: LifecycleOwner, val alphaVid
 
         val dataPath = dataSource.getPath(orientation)
         val scaleType = dataSource.getScaleType(orientation)
-        if (TextUtils.isEmpty(dataPath) || !File(dataPath).exists()) {
-            monitor(false, errorInfo = "dataPath is empty or File is not exists. path = $dataPath")
+        if (TextUtils.isEmpty(dataPath)) {
+            monitor(false, errorInfo = "dataPath is empty")
+            emitEndSignal()
+            return
+        }
+        if (!dataPath.startsWith("http") && !File(dataPath).exists()) {
+            monitor(false, errorInfo = "file is not exists. path = $dataPath")
             emitEndSignal()
             return
         }

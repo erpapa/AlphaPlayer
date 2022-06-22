@@ -68,7 +68,7 @@ class VideoGiftView @JvmOverloads constructor(
         startDataSource(dataSource)
     }
 
-    private fun startDataSource(dataSource: DataSource) {
+    fun startDataSource(dataSource: DataSource) {
         if (!dataSource.isValid()) {
             Log.e(TAG, "startDataSource: dataSource is invalid.")
         }

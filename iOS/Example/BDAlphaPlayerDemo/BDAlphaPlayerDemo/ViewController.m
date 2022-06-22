@@ -11,6 +11,7 @@
 @interface ViewController () <BDAlphaPlayerDelegate>
 
 @property (nonatomic, strong) BDAlphaPlayerMetalView *metalView;
+@property (nonatomic, strong) BDAlphaPlayerVideoView *videoView;
 @property (nonatomic, strong) UIButton *startBtn;
 @property (nonatomic, strong) UIButton *stopBtn;
 
@@ -39,28 +40,46 @@
 
 - (void)startBtnClicked:(UIButton *)sender
 {
-    if (!self.metalView) {
-        self.metalView = [[BDAlphaPlayerMetalView alloc] initWithDelegate:self];
-        [self.view insertSubview:self.metalView atIndex:0];
+//    if (!self.metalView) {
+//        self.metalView = [[BDAlphaPlayerMetalView alloc] initWithDelegate:self];
+//        [self.view insertSubview:self.metalView atIndex:0];
+//    }
+//    self.startBtn.hidden = YES;
+//    self.stopBtn.alpha = 0.3;
+//
+//    BDAlphaPlayerMetalConfiguration *configuration = [BDAlphaPlayerMetalConfiguration defaultConfiguration];
+//    NSString *testResourcePath = [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"TestResource"];
+//    NSString *directory = [testResourcePath stringByAppendingPathComponent:@"heartbeats"];
+//    configuration.directory = directory;
+//    configuration.renderSuperViewFrame = self.view.frame;
+//    configuration.orientation = BDAlphaPlayerOrientationPortrait;
+//
+//    [self.metalView playWithMetalConfiguration:configuration];
+
+    if (!self.videoView) {
+        self.videoView = [[BDAlphaPlayerVideoView alloc] initWithDelegate:self];
+        [self.view insertSubview:self.videoView atIndex:0];
     }
     self.startBtn.hidden = YES;
     self.stopBtn.alpha = 0.3;
 
-    BDAlphaPlayerMetalConfiguration *configuration = [BDAlphaPlayerMetalConfiguration defaultConfiguration];
-    NSString *testResourcePath = [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"TestResource"];
-    NSString *directory = [testResourcePath stringByAppendingPathComponent:@"heartbeats"];
-    configuration.directory = directory;
-    configuration.renderSuperViewFrame = self.view.frame;
-    configuration.orientation = BDAlphaPlayerOrientationPortrait;
-
-    [self.metalView playWithMetalConfiguration:configuration];
+    BDAlphaPlayerResourceModel *model = [[BDAlphaPlayerResourceModel alloc] init];
+    model.currentContentMode = BDAlphaPlayerContentModeScaleAspectFit;
+    model.currentResourceFileURL = [NSURL URLWithString:@"https://video.ivwen.com/users/47951008/73c07c63b599bcc0d4ac53802d6ebd79.mp4"];
+    [self.videoView playWithFrame:self.view.frame model:model completion:^{
+        NSLog(@"videoView play completion");
+    }];
 }
 
 - (void)stopBtnClicked:(UIButton *)sender
 {
-    [self.metalView stopWithFinishPlayingCallback];
-    [self.metalView removeFromSuperview];
-    self.metalView = nil;
+//    [self.metalView stopWithFinishPlayingCallback];
+//    [self.metalView removeFromSuperview];
+//    self.metalView = nil;
+
+    [self.videoView stopWithFinishPlayingCallback];
+    [self.videoView removeFromSuperview];
+    self.videoView = nil;
 }
 
 - (void)metalView:(UIView *)metalView didFinishPlayingWithError:(NSError *)error
